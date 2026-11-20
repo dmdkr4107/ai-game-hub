@@ -11,7 +11,8 @@ const windowPreferences = Object.freeze({
 function isTrustedDevUrl(candidate) {
   try {
     const url = new URL(candidate);
-    return url.protocol === 'http:' && url.hostname === '127.0.0.1' && url.port === '5173' && url.pathname === '/' && !url.search && !url.hash;
+    return url.origin === 'http://127.0.0.1:5173' && url.pathname === '/' &&
+      !url.username && !url.password && !url.search && !url.hash;
   } catch { return false; }
 }
 function attachSecurityHandlers(webContents, session) {
@@ -19,5 +20,6 @@ function attachSecurityHandlers(webContents, session) {
   session.setPermissionCheckHandler(() => false);
   webContents.setWindowOpenHandler(() => ({action:'deny'}));
   webContents.on('will-navigate', (event) => event.preventDefault());
+  webContents.on('will-redirect', (event) => event.preventDefault());
 }
 module.exports = { windowPreferences, isTrustedDevUrl, attachSecurityHandlers };

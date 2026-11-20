@@ -1,6 +1,6 @@
 @echo off
-setlocal EnableExtensions
-cd /d "%~dp0"
+setlocal EnableExtensions DisableDelayedExpansion
+cd /d "%~dp0" || exit /b 1
 title AI Game Hub - Build Windows Installer
 
 echo This builds an UNSIGNED INTERNAL-TEST installer on Windows.
@@ -8,11 +8,9 @@ where node >nul 2>&1
 if errorlevel 1 goto :requirements
 where npm.cmd >nul 2>&1
 if errorlevel 1 goto :requirements
-if not exist "node_modules\electron\package.json" (
-  call npm install --no-audit --no-fund
-  if errorlevel 1 goto :error
-)
-call npm run package:win
+node scripts\prepare-windows.cjs
+if errorlevel 1 goto :error
+call npm.cmd run package:win
 if errorlevel 1 goto :error
 
 echo.

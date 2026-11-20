@@ -2,15 +2,17 @@ export type Language = 'ko' | 'en';
 export type PageId = 'home' | 'create' | 'games' | 'settings';
 export const text = {
   ko: {
+    development:'개발 진행', alphaBadge:'알파', phaseBadge:'1단계', createBadge:'만들기',
+    studioEyebrow:'제작 공간', libraryEyebrow:'내 라이브러리', libraryOverline:'나만의 게임을 시작해 보세요', settingsEyebrow:'앱 환경설정',
     internal:'내부 개발용', internalOnly:'테스트 전용', tagline:'당신의 상상을 게임으로', navTitle:'탐색 메뉴',
     workspace:'워크스페이스', yourWorkspace:'내 작업 공간', home:'홈', create:'AI 게임 만들기', games:'내 게임', settings:'설정',
     noProjects:'프로젝트 없음', currentPhase:'기본 UI 개발', prototypeNote:'AI 및 게임 실행은 연결되지 않았어요.', guestDev:'개발 모드',
-    phase:'1단계 / 5단계', welcomeEyebrow:'WELCOME TO YOUR CREATIVE SPACE',welcomeTitle:'안녕하세요, 크리에이터!',welcomeSubtitle:'당신의 첫 번째 게임을 향한 출발점에 오신 걸 환영해요.',
-    heroEyebrow:'YOUR WORLD BEGINS HERE', heroTitleLine1:'상상하는 모든 것,',heroTitleLine2:'게임이 되는 세상.',heroText:'아이디어 하나에서 시작해 나만의 게임을 만들어 보세요. 지금은 제작 경험을 미리 둘러볼 수 있어요.',start:'게임 만들기 살펴보기', heroDisclaimer:'현재 1단계 화면 시제품이며 AI 생성은 아직 지원하지 않아요.',
-    sectionDiscover:'QUICK START', discoverTitle:'무엇부터 해볼까요?',discoverSub:'원하는 곳으로 이동해 AI Game Hub의 첫 화면을 경험해 보세요.',stageOneBadge:'4개 화면 준비됨',
+    phase:'1단계 / 5단계', welcomeEyebrow:'내 게임을 만드는 공간',welcomeTitle:'안녕하세요, 크리에이터!',welcomeSubtitle:'당신의 첫 번째 게임을 향한 출발점에 오신 걸 환영해요.',
+    heroEyebrow:'나만의 게임 세상', heroTitleLine1:'상상하는 모든 것,',heroTitleLine2:'게임이 되는 세상.',heroText:'아이디어 하나에서 시작해 나만의 게임을 만들어 보세요. 지금은 제작 경험을 미리 둘러볼 수 있어요.',start:'게임 만들기 살펴보기', heroDisclaimer:'현재 1단계 화면 시제품이며 AI 생성은 아직 지원하지 않아요.',
+    sectionDiscover:'빠른 시작', discoverTitle:'무엇부터 해볼까요?',discoverSub:'원하는 곳으로 이동해 AI Game Hub의 첫 화면을 경험해 보세요.',stageOneBadge:'4개 화면 준비됨',
     quickCreate:'새 게임 구상하기',quickCreateDesc:'게임 아이디어를 적어보는 제작 화면으로 이동해요.',collection:'내 라이브러리',collectionDesc:'앞으로 만든 게임이 모일 공간을 둘러보세요.',
-    sectionInspiration:'INSPIRATION',conceptTitle:'이런 게임은 어떠세요?',conceptDescription:'앞으로 만들 수 있는 게임의 분위기를 그려본 콘셉트예요.',conceptDisclaimer:'예시 이미지 · 실행 불가',
-    conceptOneTag:'ARCADE · 2D', conceptOne:'네온 드리프터',conceptTwoTag:'ADVENTURE · 2D',conceptTwo:'달빛 숲 탐험',conceptThreeTag:'SANDBOX · 3D',conceptThree:'블록 월드',conceptIllustration:'컨셉 미리보기',
+    sectionInspiration:'아이디어',conceptTitle:'이런 게임은 어떠세요?',conceptDescription:'앞으로 만들 수 있는 게임의 분위기를 그려본 콘셉트예요.',conceptDisclaimer:'예시 이미지 · 실행 불가',
+    conceptOneTag:'아케이드 · 2D', conceptOne:'네온 드리프터',conceptTwoTag:'모험 · 2D',conceptTwo:'달빛 숲 탐험',conceptThreeTag:'샌드박스 · 3D',conceptThree:'블록 월드',conceptIllustration:'컨셉 미리보기',
     protectedTitle:'안전한 첫걸음',protectedDesc:'이 버전에서는 계정, 실제 게임 생성·실행, 온라인 공유 기능을 제공하지 않아요.',
     createTitle:'어떤 게임을 만들고 싶나요?',createDesc:'떠오르는 아이디어를 자유롭게 적어보세요. 지금은 화면을 체험하는 단계예요.',
     studioStepOne:'아이디어',studioStepTwo:'AI 제작',studioStepThree:'게임 실행',availableNow:'화면 체험 가능',planned:'추후 지원',
@@ -29,9 +31,11 @@ export const text = {
     reducedMotion:'움직임 줄이기',motionDesc:'장식 애니메이션과 움직이는 효과를 끕니다.',appInfo:'AI Game Hub',security:'보안 및 이용 안내',
     securityDesc:'현재는 개발용 UI입니다. 로그인, AI, Godot, 파일 접근 및 온라인 서비스는 비활성화되어 있습니다.',
     settingsAsideTitle:'더 멋진 모험을 위한 준비',settingsAsideDesc:'누구나 쉽게 자신만의 게임을 만들 수 있도록, 하나씩 기능을 완성하고 있어요.',info1:'앱 버전',info3:'서비스 상태',
-    footer:'PHASE 01 · UI PROTOTYPE'
+    footer:'1단계 · 화면 시제품'
   },
   en: {
+    development:'Development', alphaBadge:'Alpha', phaseBadge:'Phase 1', createBadge:'Create',
+    studioEyebrow:'Create Studio', libraryEyebrow:'Your Library', libraryOverline:'Your Next Adventure Starts Here', settingsEyebrow:'App Preferences',
     internal:'Internal only', internalOnly:'Test build',tagline:'Turn imagination into games',navTitle:'Navigation',
     workspace:'Workspace',yourWorkspace:'Your space',home:'Home',create:'Create with AI',games:'My Games',settings:'Settings',
     noProjects:'No projects',currentPhase:'UI foundation',prototypeNote:'AI and game runtime are not connected.',guestDev:'Developer mode',

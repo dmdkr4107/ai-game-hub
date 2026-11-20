@@ -47,6 +47,7 @@ test('Electron renderer security defaults are restrictive', () => {
   assert.match(html,/Content-Security-Policy/);
   assert.match(html,/object-src 'none'/);
   assert.match(html,/script-src 'self';/);
+  assert.match(html,/connect-src 'none';/);
 });
 
 test('only expected loopback development address may be loaded', () => {

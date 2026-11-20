@@ -11,22 +11,22 @@
 - 이전 설계 문서 `docs/` 보존
 
 ## Windows 원클릭 설치 및 실행
-프로젝트 폴더에서 **`START_AI_GAME_HUB.bat`을 더블클릭**하세요. 첫 실행은 Node.js와 npm을 사용해 의존성을 설치합니다. 이후 빌드한 화면을 Electron 창에 표시합니다. 의존성을 처음 내려받을 때는 인터넷 연결이 필요합니다.
+프로젝트 폴더에서 **`START_AI_GAME_HUB.bat`을 더블클릭**하세요. 첫 실행이나 잠금 파일 변경 후에는 npm이 `package-lock.json`에 기록된 버전으로 의존성을 설치합니다. 이후 빌드한 화면을 Electron 창에 표시합니다. 의존성과 Electron 실행 파일을 처음 내려받을 때는 인터넷 연결이 필요합니다.
 
 선택적으로 Windows PC에서 `BUILD_WINDOWS_INSTALLER.bat`을 더블클릭하면 내부 테스트용 설치 EXE를 빌드할 수 있습니다. 이 EXE는 ZIP에 포함되어 있지 않으며 빌드하면 `release/`에 생성됩니다.
 
 수동 실행 방법도 계속 지원합니다.
 
-사전 준비: Windows 10/11, Node.js LTS 및 npm, 인터넷 연결 (최초 의존성 설치에 필요).
+Windows 10/11과 Node.js 22.12.0 이상 및 npm이 필요합니다. Node.js LTS 버전을 권장합니다.
 
 PowerShell 또는 CMD에서 이 README가 있는 폴더로 이동한 다음:
 
 ```bat
-npm install
+npm ci
 npm run dev
 ```
 
-개발 서버와 Electron 창을 같이 실행합니다. 종료할 때 터미널에서 `Ctrl+C`를 누르세요.
+개발 서버는 `127.0.0.1:5173`에서만 실행됩니다. 앱 창을 닫으면 서버도 종료됩니다.
 
 배포 전과 동일한 로컬 빌드에서 확인하려면:
 ```bat
@@ -35,10 +35,12 @@ npm run build
 npm start
 ```
 
-**내부 테스트용 Windows 설치 파일을 만들고 싶을 때만** `npm run package:win`을 사용하세요. Windows에서 실행하는 것이 권장되며, 결과물은 `release/`에 생성됩니다. 내부 테스트용 설치 프로그램입니다.
+**내부 테스트용 Windows 설치 파일을 만들고 싶을 때만** `npm run package:win`을 사용하세요. Windows에서 실행하는 것이 권장되며, 설치 프로그램은 내부 테스트용이며 `release/`에 생성됩니다. 빌드 명령은 결과물을 업로드하지 않습니다.
 
 ## 테스트
-`npm run test`는 Node.js의 내장 테스트 러너로 소스의 화면 메뉴/범위/보안 설정을 검사합니다. `npm run build`는 TypeScript 타입 검증과 Vite 빌드를 수행합니다. Windows 실행 결과는 아래 점검 기록을 참고하세요.
+- `npm run check`는 자동 검사와 TypeScript·Vite 빌드를 실행합니다.
+- Windows에서 `npm run test:smoke`는 빌드 후 Electron을 화면에 표시하지 않고 실행해 마우스·키보드 화면 이동, 언어와 움직임 설정, 비활성화된 제작 버튼, 읽기 전용 앱 정보 연결을 확인합니다. 테스트는 별도 임시 프로필을 사용하고 검증이 끝나면 종료합니다.
+- 검증 결과와 남은 항목은 [1단계 완료 기준](docs/04_phase1_definition.md#완료-기준)과 [개발 기록](docs/DEV_LOG.md)에 남깁니다.
 
 ## 프로젝트 구조
 ```
