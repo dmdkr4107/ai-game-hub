@@ -1,14 +1,16 @@
 @echo off
 setlocal EnableExtensions DisableDelayedExpansion
 cd /d "%~dp0" || exit /b 1
-title AI Game Hub - Phase 1 Launcher
+title AI Game Hub - Windows Launcher
 
 echo ============================================
-echo AI Game Hub - Phase 1 Internal Prototype
+echo AI Game Hub - Phase 3 Internal Test
 echo ============================================
 echo.
-echo This is a development prototype, not a public service.
-echo First run requires Node.js, npm and an Internet connection.
+echo Create games by chatting with AI and play them in the same app.
+echo The source launcher needs Node.js 22.12.0 or newer and npm.
+echo Internet access is needed to download dependencies on the first run.
+echo Use Ollama to create an original 2D game. Godot opens older saved template games.
 echo.
 
 where node >nul 2>&1

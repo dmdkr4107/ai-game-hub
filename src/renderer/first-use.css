@@ -1,0 +1,55 @@
+.home-hero .hero-copy {
+  width: min(64%, 590px);
+  padding-top: 42px;
+}
+
+.home-hero .hero-copy h1 {
+  font-size: clamp(30px, 3.5vw, 54px);
+  line-height: 1.14;
+  letter-spacing: -.035em;
+  margin: 0 0 14px;
+  max-width: 14ch;
+}
+
+.home-hero .hero-copy p {
+  color: #e1d7f8;
+  font-size: 15px;
+}
+
+.first-use-hero-art {
+  align-self: stretch;
+  position: absolute;
+  inset: 0 0 0 44%;
+  overflow: hidden;
+  opacity: .86;
+}
+
+.first-use-hero-art canvas {
+  height: 100%;
+  object-fit: cover;
+}
+
+.first-use-hero-art::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, #29204e, transparent 52%);
+}
+
+.first-use-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+@media (max-width: 740px) {
+  .home-hero .hero-copy {
+    width: 100%;
+  }
+
+  .first-use-hero-art {
+    inset: 0;
+    opacity: .25;
+  }
+}

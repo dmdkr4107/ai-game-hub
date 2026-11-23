@@ -1,2 +1,8 @@
 /// <reference types="vite/client" />
-interface Window { hub?: { getAppInfo: () => Promise<{version:string;phase:number;internalOnly:boolean}> }; }
+import type { HubApi } from '../shared/ai';
+
+declare global {
+  interface Window {
+    hub?: HubApi;
+  }
+}

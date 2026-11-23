@@ -1,0 +1,13 @@
+.free-game-preview { min-width: 0; }
+.free-game-preview-actions { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: .65rem; }
+.free-game-preview iframe {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid #474764;
+  border-radius: .65rem;
+  background: #121526;
+}
+.free-game-preview iframe:focus-visible,
+.free-game-preview[data-keyboard-focus="true"] iframe { outline: 2px solid #c695ff; outline-offset: 2px; }
+.free-game-preview-status { margin: .65rem 0 0; font-size: .875rem; color: #d4c6ef; }

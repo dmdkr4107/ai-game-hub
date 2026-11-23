@@ -1,19 +1,21 @@
 {
   "name": "ai-game-hub",
   "productName": "AI Game Hub",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "AI Game Hub phase 1: internal Windows UI prototype only",
+  "description": "AI Game Hub Phase 3: internal Windows prototype with local game creation",
   "main": "src/main/main.cjs",
   "type": "module",
   "engines": {"node": ">=22.12.0"},
   "scripts": {
     "dev": "node scripts/dev.mjs",
-    "build": "tsc --noEmit && vite build",
+    "build": "tsc --noEmit && tsc -p tsconfig.main.json && vite build",
     "start": "electron .",
     "test": "node --test tests/*.test.cjs",
     "check": "npm run test && npm run build",
     "test:smoke": "npm run build && node tests/smoke.cjs",
+    "test:free": "npm run build && node tests/free-studio-smoke.cjs",
+    "test:games": "node tests/godot-smoke.cjs",
     "package:win": "npm run build && electron-builder --win nsis --x64 --publish never"
   },
   "dependencies": {

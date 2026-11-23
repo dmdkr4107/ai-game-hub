@@ -1,2 +1,3 @@
 # Shared types
-현재는 1단계 UI만 제공. 추후 모델·프로젝트 도메인 타입을 설계한 뒤 추가합니다. 미리 기능을 가정하지 않습니다.
+
+`ai.ts` describes the app information, local AI, and local game bridge exposed by the preload script. The main process validates incoming requests before it contacts Ollama or starts Godot.

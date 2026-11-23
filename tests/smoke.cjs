@@ -2,8 +2,10 @@ const assert = require('node:assert/strict');
 const { spawn } = require('node:child_process');
 const { existsSync, mkdtempSync, rmSync } = require('node:fs');
 const { tmpdir } = require('node:os');
+const { writeFile } = require('node:fs/promises');
 const path = require('node:path');
 const { setTimeout: sleep } = require('node:timers/promises');
+const { mockOllama } = require('./smoke-ai.cjs');
 
 const project = path.join(__dirname, '..');
 const indexPath = path.join(project, 'dist', 'index.html');
@@ -26,7 +28,7 @@ function runElectron() {
     console.error('Electron smoke test timed out.');
     process.exitCode = 1;
     child.kill();
-  }, 30_000);
+  }, 150_000);
 
   const onInterrupt = () => {
     process.exitCode = 1;
@@ -60,7 +62,7 @@ async function waitFor(read, message) {
   assert.fail(message);
 }
 
-async function verifyWindow(win) {
+async function verifyWindow(win, runtime) {
   const contents = win.webContents;
   contents.setBackgroundThrottling(false);
   const evaluate = (expression) => contents.executeJavaScript(expression);
@@ -88,7 +90,6 @@ async function verifyWindow(win) {
       const rect = element.getBoundingClientRect();
       return [Math.round(rect.x + rect.width / 2), Math.round(rect.y + rect.height / 2)];
     })()`);
-    await input.sendCommand('Input.dispatchMouseEvent', { type: 'mouseMoved', x, y });
     const button = { button: 'left', clickCount: 1, x, y };
     await input.sendCommand('Input.dispatchMouseEvent', { type: 'mousePressed', ...button });
     await input.sendCommand('Input.dispatchMouseEvent', { type: 'mouseReleased', ...button });
@@ -112,29 +113,86 @@ async function verifyWindow(win) {
   await waitFor(() => evaluate('document.documentElement.lang === "en"'), 'Keyboard did not change language.');
   await key('Tab');
   await waitFor(async () => (await focused()) === 'Reduce motion', 'Reduced-motion switch was not focusable.');
+  const initialMotion = await evaluate('document.documentElement.classList.contains("reduce-motion")');
   await key('Space');
-  await waitFor(() => evaluate('document.documentElement.classList.contains("reduce-motion")'), 'Reduced motion was not applied.');
+  await waitFor(async () => (await evaluate('document.documentElement.classList.contains("reduce-motion")')) !== initialMotion,
+    'Reduced-motion preference did not respond to the switch.');
+  assert.equal(await evaluate('localStorage.getItem("ai-game-hub:reduce-motion")'), String(!initialMotion));
+  assert.equal(await evaluate('localStorage.getItem("ai-game-hub:language")'), 'en');
 
   await click('.nav-item:nth-child(1)');
   await waitFor(async () => (await activePage()) === 'Home', 'Mouse did not open Home.');
-  const scrollTop = await evaluate('document.querySelector("main").scrollTop = 240; document.querySelector("main").scrollTop');
-  assert.ok(scrollTop > 0, 'Home was not tall enough to check scroll reset.');
+  assert.equal(await evaluate('Boolean(document.querySelector("#start-game-draft, .starter-card, .first-use-chat"))'), false,
+    'Home still exposes an old creation route.');
+  await click('#open-free-studio');
+  await waitFor(() => evaluate('Boolean(document.querySelector("#free-game-prompt"))'), 'Home did not open the production conversation.');
+  assert.equal(await evaluate('document.activeElement.id'), 'free-studio-title');
+
+  await click('.nav-item:nth-child(1)');
+  await waitFor(async () => (await activePage()) === 'Home', 'Could not return to Home.');
   await click('.nav-item:nth-child(2)');
   await waitFor(async () => (await activePage()) === 'Create with AI', 'Mouse did not open the creation screen.');
-  assert.equal(await evaluate('document.querySelector("main").scrollTop'), 0);
-
-  await click('.choice-button:nth-child(2)');
-  await waitFor(() => evaluate('document.querySelector(".choice-button:nth-child(2)").getAttribute("aria-pressed") === "true"'), '3D selection did not apply.');
-  await click('.example-card:nth-child(2)');
-  await waitFor(() => evaluate('document.querySelector("textarea").value.length > 0'), 'The example did not populate the idea field.');
-  assert.equal(await evaluate('document.querySelector(".disabled-action").disabled'), true);
+  assert.ok(await evaluate('Boolean(document.querySelector("#free-game-prompt"))'));
+  assert.equal(await evaluate('Boolean(document.querySelector("#game-idea, #free-studio-back, #open-local-chat, #use-direct-game-settings"))'), false,
+    'Creation still exposes the template form or a second AI chat.');
 
   await click('.nav-item:nth-child(3)');
   await waitFor(async () => (await activePage()) === 'My Games', 'Mouse did not open the library.');
-  assert.ok(await evaluate('document.querySelector(".library-empty h2").textContent.trim()'));
+  await waitFor(() => evaluate('Boolean(document.querySelector(".library-empty button"))'), 'Empty game library did not render.');
   await click('.library-empty button');
-  await waitFor(async () => (await activePage()) === 'Create with AI', 'Library action did not open the creation screen.');
-  assert.equal(await evaluate('document.activeElement.id'), 'main-content');
+  await waitFor(async () => (await activePage()) === 'Create with AI', 'Library action did not open the creation conversation.');
+
+  // Seed through the original API to confirm that the existing Godot library still works.
+  assert.equal((await evaluate('window.hub.createGame({mode:"2d", prompt:"Smoke Star Trail"})')).status, 'done');
+  await click('.nav-item:nth-child(3)');
+  const game = () => evaluate('document.querySelector("[data-game-id] h2")?.textContent');
+  await waitFor(async () => (await game()) === 'Smoke Star Trail', 'A saved Godot game did not appear in My Games.');
+  await click('.game-play');
+  await waitFor(() => evaluate('Boolean(document.querySelector(".game-stop"))'), 'The preview did not change to the Stop state.');
+  await waitFor(() => evaluate('document.querySelector("#game-preview")?.dataset.state === "ready"'), 'Embedded preview did not report ready.');
+  assert.equal(await evaluate('document.querySelector("#game-preview-frame")?.getAttribute("sandbox")'), 'allow-scripts allow-same-origin');
+  await click('#close-game-preview');
+  await waitFor(() => evaluate('Boolean(document.querySelector(".game-play")) && !document.querySelector("#game-preview-frame")'), 'The embedded preview did not stop.');
+  await click('.game-edit');
+  await click('.game-update-prompt');
+  await input.sendCommand('Input.insertText', {text: 'Make it four stars.'});
+  await click('.game-update');
+  await waitFor(async () => (await game()) === 'Updated Star Trail', 'The edited version did not replace the original.');
+  await click('.game-restore');
+  await waitFor(() => evaluate('Boolean(document.querySelector("#confirm-game-restore"))'), 'Restore did not ask for confirmation.');
+  assert.equal(await game(), 'Updated Star Trail');
+  await click('#confirm-game-restore');
+  await waitFor(async () => (await game()) === 'Smoke Star Trail', 'The previous version was not restored.');
+  await click('.nav-item:nth-child(2)');
+  await waitFor(async () => (await activePage()) === 'Create with AI', 'Could not return to the creation screen.');
+
+  await click('#free-game-prompt');
+  await input.sendCommand('Input.insertText', {text: 'Make a race in a moonlit city.'});
+  await click('.nav-item:nth-child(4)');
+  await click('#open-ai-setup');
+  await waitFor(() => evaluate('Boolean(document.querySelector("#local-ai-model"))'), 'Local model settings did not open.');
+  assert.equal(await evaluate('Boolean(document.querySelector("#local-chat-prompt"))'), false, 'Model settings exposed a duplicate chat.');
+  await waitFor(() => evaluate('document.querySelector("#local-ai-model").disabled === false'), 'Models were not available.');
+  await evaluate('document.querySelector("#local-ai-model").focus()');
+  await key('ArrowDown');
+  await key('ArrowDown');
+  await waitFor(() => evaluate('document.querySelector("#local-ai-model").value === "qwen2.5-coder:7b"'), 'The missing model could not be selected.');
+  await click('#request-model-install');
+  assert.equal(runtime.pulls.length, 0);
+  await click('#dismiss-model-install');
+  assert.equal(runtime.pulls.length, 0, 'Dismissing consent incorrectly downloaded a model.');
+  await click('#request-model-install');
+  await click('#confirm-model-install');
+  await waitFor(() => runtime.pulls.length === 1, 'Model consent did not reach the backend.');
+  assert.equal(runtime.pulls[0].model, 'qwen2.5-coder:7b');
+  assert.equal(runtime.pulls[0].consent, true);
+  runtime.emitProgress();
+  await waitFor(() => evaluate('document.querySelector("#local-model-progress")?.value === 10'), 'Download progress did not render.');
+  runtime.complete();
+  await waitFor(() => evaluate('document.querySelector("#local-ai-status")?.dataset.status === "done"'), 'Model installation did not complete.');
+  await click('#back-to-idea');
+  await waitFor(() => evaluate('document.querySelector("#free-game-prompt")?.value === "Make a race in a moonlit city."'),
+    'The creation draft was lost when returning from model settings.');
 
   const minimumSize = win.getMinimumSize();
   win.setSize(...minimumSize);
@@ -145,14 +203,26 @@ async function verifyWindow(win) {
     'Footer was clipped at the minimum window height.',
   );
 
-  assert.deepEqual(await evaluate('Object.keys(window.hub)'), ['getAppInfo']);
+  assert.deepEqual(await evaluate('Object.keys(window.hub).sort()'), [
+    'cancelAiOperation', 'commitFreeGame', 'createConfiguredGame', 'createGame', 'discardFreeGame', 'exportFreeGame', 'extractGameIdea',
+    'generateFreeGame', 'getAiEnvironment', 'getAppInfo', 'installAiModel', 'listFreeProjects', 'listGames',
+    'loadFreeProject', 'onAiEvent', 'openSetupResource', 'playGame', 'restoreFreeGame', 'restoreGame', 'startAiChat', 'stopGame', 'updateGame',
+  ]);
   assert.equal(await evaluate('Object.isFrozen(window.hub)'), true);
   assert.equal(await evaluate('typeof window.require === "undefined" && typeof window.process === "undefined"'), true);
   const info = await evaluate('window.hub.getAppInfo()');
   assert.equal(typeof info.version, 'string');
-  assert.equal(info.phase, 1);
+  assert.equal(info.phase, 3);
   assert.equal(info.internalOnly, true);
   input.detach();
+
+  const loaded = new Promise(resolve => contents.once('did-finish-load', resolve));
+  contents.reload();
+  await loaded;
+  await waitFor(() => evaluate('Boolean(document.querySelector("#open-free-studio"))'), 'Home did not render after reload.');
+  await evaluate('document.querySelector(".nav-item:nth-child(2)").click()');
+  await waitFor(() => evaluate('Boolean(document.querySelector("#free-game-prompt"))'),
+    'The creation menu did not open the AI conversation after reopening the document.');
 }
 
 function runSmoke() {
@@ -180,6 +250,30 @@ function runSmoke() {
     console.error('Electron quit before completing the smoke test.');
     app.exit(1);
   });
+  const runtime = mockOllama();
+  runtime.service.planGame = async ({previous}) => ({status:'done', config:{
+    title: previous ? 'Updated Star Trail' : 'Smoke Star Trail', stars: previous ? 4 : 3, difficulty:'easy',
+  }});
+  const gamePath = require.resolve('../src/main/games.cjs');
+  const gameModule = require(gamePath);
+  // Keep real project files, but substitute the preview child so tests remain hidden on every PC.
+  require.cache[gamePath].exports = {
+    ...gameModule,
+    createGameService: (options) => gameModule.createGameService({
+      ...options,
+      enginePath: process.execPath,
+      validateImpl: async () => true,
+      async exportImpl({outputDirectory}) {
+        await writeFile(path.join(outputDirectory, 'index.html'),
+          '<!doctype html><title>Preview</title><script src="hub-bootstrap.js" defer></script>');
+        await writeFile(path.join(outputDirectory, 'hub-bootstrap.js'),
+          'parent.postMessage({type:"ai-hub-game-ready"}, "*");');
+      },
+    }),
+  };
+  const servicePath = require.resolve('../src/main/ollama.cjs');
+  // Run the production IPC and UI against a deterministic in-process Ollama stand-in.
+  require.cache[servicePath] = { loaded: true, exports: { createOllamaService: () => runtime.service } };
   require(path.join(project, 'src', 'main', 'main.cjs'));
 
   app.whenReady().then(async () => {
@@ -189,11 +283,11 @@ function runSmoke() {
       console.error('Renderer exited unexpectedly:', details);
       app.exit(1);
     });
-    await verifyWindow(win);
+    await verifyWindow(win, runtime);
     await waitFor(() => readyToShow, 'The production app did not request to show its window.');
     assert.equal(win.isVisible(), false, 'The smoke window must remain hidden.');
     verified = true;
-    console.log('Hidden Electron smoke passed: compiled startup, mouse and keyboard navigation, UI controls, and preload.');
+    console.log('Hidden Electron smoke passed: navigation to a single creation conversation, model-download consent and progress, and saved Godot play, editing, and restore.');
     win.close();
   }).catch((error) => {
     console.error(error);

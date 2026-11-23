@@ -10,6 +10,7 @@ test('double-click Windows launcher checks prerequisites, installs, builds and r
     assert.ok(bat.includes(command), `missing: ${command}`);
   }
   assert.ok(bat.indexOf('call npm.cmd run build') < bat.indexOf('call npm.cmd start'));
+  assert.match(bat, /Create games by chatting with AI/);
 });
 
 test('optional installer-builder does not claim EXE is bundled', () => {

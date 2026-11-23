@@ -6,15 +6,6 @@ const root=path.join(__dirname,'..');
 const read=(p)=>fs.readFileSync(path.join(root,p),'utf8');
 const {isTrustedDevUrl}=require('../src/main/security.cjs');
 
-test('one-click launcher builds and opens the compiled UI',()=>{
- const bat=read('START_AI_GAME_HUB.bat');
- const build=bat.indexOf('call npm.cmd run build');
- const start=bat.indexOf('call npm.cmd start');
- assert.ok(build!==-1 && start>build);
- const pkg=JSON.parse(read('package.json'));
- assert.equal(pkg.scripts.start,'electron .');
-});
-
 test('compiled UI URL encodes literal percent signs in an extraction path',()=>{
  const {pathToFileURL, fileURLToPath}=require('node:url');
  const indexPath=path.join(root,'AI%20Game Hub','dist','index.html');

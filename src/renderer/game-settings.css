@@ -1,0 +1,56 @@
+.game-settings-switch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1rem 0;
+}
+
+.game-settings-switch button[aria-pressed="true"] {
+  border-color: #a97ce9;
+  background: #35284c;
+  color: #f5ebff;
+}
+
+.game-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.75rem 0.85rem;
+  min-width: 0;
+  margin: 0 0 1rem;
+  padding: 0;
+  border: 0;
+}
+
+.game-settings legend {
+  margin-bottom: 0.7rem;
+  font-weight: 650;
+}
+
+.game-settings label {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+
+.game-settings-title {
+  grid-column: 1 / -1;
+}
+
+.game-settings input,
+.game-settings select {
+  width: 100%;
+  min-height: 2.45rem;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid #53526a;
+  border-radius: 0.55rem;
+  background: #161724;
+  color: #f3ecff;
+  font: inherit;
+  color-scheme: dark;
+}
+
+.game-settings-feedback {
+  margin: 0.6rem 0;
+  color: #dfd2f5;
+}
