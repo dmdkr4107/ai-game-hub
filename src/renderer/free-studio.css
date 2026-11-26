@@ -196,6 +196,30 @@
   color: #ffc5cd;
 }
 
+.free-generation-progress {
+  display: grid;
+  gap: 6px;
+  margin: -1px 0 3px;
+  color: #ded0fd;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+.free-generation-progress-track {
+  height: 7px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #2a2c43;
+}
+
+.free-generation-progress-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #9f77ff, #d1aaff);
+  transition: width .3s ease;
+}
+
 .free-studio-empty-preview {
   display: grid;
   align-items: center;

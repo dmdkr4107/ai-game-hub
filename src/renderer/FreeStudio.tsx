@@ -53,6 +53,7 @@ const copy = {
     repair: '실행 오류 수정 요청',
     verifying: '새 버전을 실행해 게임 화면이 표시되는지 확인하고 있어요.',
     saving: '실행이 확인된 버전을 이 PC에 저장하고 있어요.',
+    estimatedProgress: '예상 진행률',
     restoring: '이전 버전을 복원하고 있어요.',
     stopping: '작업을 중지하고 있어요.',
     cancelled: '작업을 중지했습니다.',
@@ -124,6 +125,7 @@ const copy = {
     repair: 'Ask AI to fix startup',
     verifying: 'Checking that the new version draws its game screen.',
     saving: 'Saving the verified version on this PC.',
+    estimatedProgress: 'Estimated progress',
     restoring: 'Restoring the previous version.',
     stopping: 'Stopping.',
     cancelled: 'Operation stopped.',
@@ -185,6 +187,7 @@ export default function FreeStudio({language, visible, onOpenAi}: {
   const [preview, setPreview] = useState<Preview | null>(null);
   const [drafts, setDrafts] = useState<Record<string, string>>({});
   const [stage, setStage] = useState<Stage>('idle');
+  const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState<Status | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [confirmRestore, setConfirmRestore] = useState(false);
@@ -233,25 +236,48 @@ export default function FreeStudio({language, visible, onOpenAi}: {
     if (!visible || !api) return;
     void refreshList();
     void inspectAi();
+  }, [api, inspectAi, refreshList, visible]);
+
+  useEffect(() => {
     return () => {
-      listSequence.current += 1;
-      setupSequence.current += 1;
       const failed = failedDraft.current;
       failedDraft.current = null;
-      if (failed) void api.discardFreeGame(failed.token).catch(() => {});
+      if (failed) void api?.discardFreeGame(failed.token).catch(() => {});
       const work = generation.current;
-      if (work && work.phase !== 'saving') {
-        generation.current = null;
-        if (work.token) {
-          void api.discardFreeGame(work.token).catch(() => {});
-          setPreview(work.previous && savedPreview(work.previous));
-        } else {
-          void api.cancelAiOperation(work.id).catch(() => {});
-        }
-        setStage('idle');
-      }
+      if (!work || work.phase === 'saving') return;
+      generation.current = null;
+      if (work.token) void api?.discardFreeGame(work.token).catch(() => {});
+      else void api?.cancelAiOperation(work.id).catch(() => {});
     };
-  }, [api, inspectAi, refreshList, visible]);
+  }, [api]);
+
+  useEffect(() => {
+    if (stage === 'generating' || stage === 'repairing') {
+      setProgress(5);
+      let current = 5;
+      const timer = setInterval(() => {
+        current = Math.min(70, current + 5);
+        setProgress(current);
+      }, 2_000);
+      return () => clearInterval(timer);
+    }
+    const stageProgress: Partial<Record<Stage, number>> = {
+      loading: 15, verifying: 80, saving: 95, restoring: 70, stopping: 99, exporting: 70,
+    };
+    setProgress(stageProgress[stage] ?? 0);
+  }, [stage]);
+
+  useEffect(() => {
+    if (!visible) return;
+    const work = generation.current;
+    if (work && stage === 'idle') setStage(work.phase);
+  }, [stage, visible]);
+
+  useEffect(() => {
+    if (visible) return;
+    listSequence.current += 1;
+    setupSequence.current += 1;
+  }, [visible]);
 
   useEffect(() => {
     if (confirmRestore) keepButton.current?.focus();
@@ -574,6 +600,13 @@ export default function FreeStudio({language, visible, onOpenAi}: {
           </form>
           <p role="status" className="free-studio-status" id="free-game-status" data-stage={stage}
             data-error={activityError}>{activity}</p>
+          {busy && (
+            <div className="free-generation-progress" role="progressbar" aria-label={t.estimatedProgress}
+              aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
+              <div className="free-generation-progress-track"><span style={{width: progress + '%'}}/></div>
+              <strong>{t.estimatedProgress} {progress}%</strong>
+            </div>
+          )}
         </section>
 
         <section className="free-studio-panel free-play-panel" aria-labelledby="free-play-title">

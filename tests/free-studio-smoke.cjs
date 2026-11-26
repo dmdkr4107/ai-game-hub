@@ -156,8 +156,21 @@ async function verifyStudio(win, requests, exportPath) {
 
   await send('Wait until I cancel this request.');
   await until(async () => (await stage()) === 'generating' && requests.length === 3, 'The cancellable operation did not start.');
+  assert.equal(await evaluate('document.querySelector("#free-generate-game").disabled'), true,
+    'A second generate button remained active during generation.');
+  assert.ok(await evaluate('Number(document.querySelector(".free-generation-progress")?.getAttribute("aria-valuenow")) >= 5'),
+    'Generation did not expose an estimated progress value.');
+  await click('button[aria-label="내 게임"]');
+  await until(() => evaluate('document.querySelector("#free-studio") === null'),
+    'The studio remained visible after navigation.');
+  await click('button[aria-label="AI 게임 만들기"]');
+  await until(async () => (await stage()) === 'generating',
+    'Generation was cancelled when a different app view opened.');
+  assert.equal(requests.length, 3, 'Returning to the studio started an extra request.');
+  assert.equal(await evaluate('document.querySelector("#free-generate-game").disabled'), true,
+    'Generate became active after returning during generation.');
   assert.equal(await title(), startingGame.title);
-  assert.equal(await previewReady(), true, 'The existing preview disappeared during generation.');
+  await until(previewReady, 'The existing preview did not reconnect after returning to the studio.');
   await click('#free-cancel-game');
   await until(async () => (await stage()) === 'idle', 'The cancelled operation did not finish.');
   assert.deepEqual(await projects(), [initial]);
